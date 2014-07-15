@@ -45,13 +45,14 @@ int save(void){
  * in:s表示同步指令
  * out:函数是否执行成功
  */
-int AddSveList(int s){
+int sys(int s){
 
-
+	string path;//要同步的目录名字
 	//如果要同步所有文件，则不会罗列出还没有同步的文件列表
 	if(s == 1){
 		//表示全部同步
 		//刷新整个列表
+		AddSaveList(pfile,path);]
 
 		//重新创建save.list
 
