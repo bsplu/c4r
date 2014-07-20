@@ -14,13 +14,13 @@
 using namespace std;
 
 int sys(int s);
-void traval(string name_in);
+int AddSaveList(ofstream *fout_in,string name);
 
 int main() {
 
-	//sys(1);
-	string name = ".\\*.*";
-	traval(name);
+	sys(1);
+	//string name = ".\\*.*";
+	//traval(name);
 
 	return 0;
 }
@@ -55,16 +55,24 @@ int sys(int s) {
 		//表示全部同步
 
 		ofstream fout((sc4rbpath + "/.c4rb/save.list").c_str());
+		system(("cp " + sc4rbpath + "/.c4rb/save.list" + " " + ssavepath + "/_temp.save.list").c_str());
 
 		//刷新整个列表
 		//重新创建save.list
-		//AddSaveList(fout,ssavepath);
+		if(AddSaveList(&fout,ssavepath+"\\*.*") == -1){
+			cout<<"储存列表错误";
+			return -1;
+		}
 
 		//将整个目录打包
 		system(
-				("tar --exclude " + sc4rbpath + "/.c4rb -zcvf " + sc4rbpath
-						+ "/.c4rb/" + starfilename + " " + ssavepath
+				("tar --exclude " + sc4rbpath //去掉.c4rb文件夹
+						+ "/.c4rb -zcvf " + sc4rbpath + "/.c4rb/" + starfilename + " " //创建备份文件名
+						+ ssavepath //压缩的文件
+
 						+ "/ --force-local" + " > " + sc4rbpath + "/.c4rb/log").c_str());
+
+		system(("rm -f " + ssavepath + "/_temp.save.list").c_str());
 
 		return 1;
 
@@ -92,48 +100,73 @@ int sys(int s) {
 
 }
 
-int AddSaveList(ofstream fout_in, char spath[]) {
 
-}
+//遍历一个目录 返回文件个数（如果是目录的话）
+int AddSaveList(ofstream *fout_in,string name) {
 
-//遍历一个目录
-void traval(string name) {
-
+	int num_file(0);
 	string name1;
 	_finddata_t file;
 	long lf;
 	if ((lf = _findfirst(name.c_str(), &file)) == -1l) {
 		cout << "该文件或目录不存在！\n";
-		return;
+		return -1;
 	} else {
+		//先判断一下初始目录是否为文件
+		if (file.attrib == 0) {
+			name1 = name;
+			name1 = (name1.erase(name1.length() - 3, 3)) + file.name;
+			//cout << name1 << endl;
+			*fout_in << name1 << endl;
+			return 0;
 
-		while (_findnext(lf, &file) == 0) {
-			if (strcmp(file.name, "..") == 0)
-				continue;
+		} else if ((file.attrib & _A_ARCH) != 0) {
+			name1 = name;
+			name1 = (name1.erase(name1.length() - 3, 3)) + file.name;
+			//cout << name1  << endl;
+			*fout_in << name1 << endl;
+			return 0;
+		} else {
+			while (_findnext(lf, &file) == 0) {
+				if (strcmp(file.name, "..") == 0)
+					continue;
 
-			if (file.attrib == 0) {
-				name1 = name;
-				cout << (name1.erase(name.length() - 3, 3)) + file.name << endl;
+				if (file.attrib == 0) {
+					name1 = name;
+					name1 = (name1.erase(name1.length() - 3, 3)) + file.name;
+					//cout << name1 << endl;
+					*fout_in << name1 << endl;
+					num_file++;
+				}
+				if ((file.attrib & _A_ARCH) != 0) {
+					name1 = name;
+					name1 = (name1.erase(name1.length() - 3, 3)) + file.name;
+					//cout << name1 << endl;
+					*fout_in << name1 << endl;
+					num_file++;
+				}
 
+				if ((file.attrib & _A_SUBDIR) != 0) {
+
+					name1 = name;
+
+					name.insert(name.length() - 3, strcat(file.name, "\\"));
+					num_file++;
+					if(AddSaveList(fout_in,name) == 0 ){
+						name = (name.erase(name.length() - 3, 3));
+						//cout << name << endl;
+						*fout_in << name << endl;
+					}
+
+					name = name1;
+
+				}
 			}
-			if ((file.attrib & _A_ARCH) != 0) {
-				name1 = name;
-				cout << (name1.erase(name.length() - 3, 3)) + file.name << endl;
-
-			}
-
-			if ((file.attrib & _A_SUBDIR) != 0) {
-
-				name1 = name;
-
-				name.insert(name.length() - 3, strcat(file.name, "\\"));
-
-				traval(name);
-
-				name = name1;
-			}
+			//cout<<file.name<<":"<<num_file<<endl;
+			return num_file;
 		}
-
 	}
 	_findclose(lf);
 }
+
+
