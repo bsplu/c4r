@@ -18,7 +18,7 @@ int AddSaveList(ofstream *fout_in,string name);
 
 int main() {
 
-	sys(1);
+	sys(3);
 	//string name = ".\\*.*";
 	//traval(name);
 
@@ -78,13 +78,37 @@ int sys(int s) {
 
 	} else if (s == 2 || s == 3) {
 		//打开save.list文件
-
+		ofstream fout((sc4rbpath + "/.c4rb/save.list").c_str(),ios::app);
 		//2表示新产生的文件全部同步 3表示需要用户选择需要增添或者要同步的文件
 		//增添列表
 		if (s == 2) {
 			//获得新文件单子，将单子直接
 
 		} else if (s == 3) {
+			//将同步名单读进来
+			//获得文件行数
+			FILE *stream_wc;
+
+		    char   buf[1024];
+		    memset( buf, '\0', sizeof(buf) );
+
+		    stream_wc = popen(("wc -l "+sc4rbpath + "/.c4rb/save.list | "
+		    		+ "cut -d \' \' -f 1").c_str(),"r");
+			fread( buf, sizeof(char), sizeof(buf),  stream_wc);
+			int len_savelist = atoi(buf);
+			//cout<<len_savelist<<endl;
+			string *savelist = new string [len_savelist];
+
+
+			//将所有没有同步的文件名列出来
+
+			//输入要同步的文件名
+
+			//将新文件添加到目录中
+
+			//将目录中不存在的文件去掉
+
+			//将目录中的文件打包
 
 		} else {
 
